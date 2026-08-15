@@ -1,1 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Conversa 💬</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#111;
+    color:white;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+}
+
+.container{
+    width:100%;
+    max-width:430px;
+    height:100vh;
+    background:#181818;
+    display:flex;
+    flex-direction:column;
+}
+
+header{
+    padding:16px;
+    background:linear-gradient(135deg,#6a0dad,#9b30ff);
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.voltar{
+    font-size:25px;
+    cursor:pointer;
+}
+
+.info{
+    flex:1;
+}
+
+.info h1{
+    margin:0;
+    font-size:19px;
+}
+
+.info p{
+    margin:4px 0 0;
+    font-size:12px;
+    opacity:.8;
+}
+
+.mensagens{
+    flex:1;
+    padding:18px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.vazio{
+    text-align:center;
+    color:#777;
+    margin:auto;
+}
+
+.mensagem{
+    max-width:78%;
+    padding:11px 14px;
+    border-radius:16px;
+    word-wrap:break-word;
+    font-size:15px;
+}
+
+.enviada{
+    align-self:flex-end;
+    background:#8a2be2;
+    border-bottom-right-radius:4px;
+}
+
+.recebida{
+    align-self:flex-start;
+    background:#292929;
+    border-bottom-left-radius:4px;
+}
+
+.hora{
+    font-size:10px;
+    opacity:.65;
+    margin-top:5px;
+    text-align:right;
+}
+
+.area-envio{
+    padding:12px;
+    background:#202020;
+    display:flex;
+    gap:8px;
+}
+
+.area-envio input{
+    flex:1;
+    padding:14px;
+    border:none;
+    border-radius:22px;
+    background:#303030;
+    color:white;
+    outline:none;
+    font-size:15px;
+}
+
+.area-envio button{
+    width:50px;
+    height:50px;
+    border:none;
+    border-radius:50%;
+    background:#8a2be2;
+    color:white;
+    font-size:20px;
+    cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+
+<div class="voltar"
+onclick="voltar()">
+‹
+</div>
+
+<div class="info">
+
+<h1 id="nomeDestinatario">
+Carregando...
+</h1>
+
+<p>💬 Conversa</p>
+
+</div>
+
+</header>
+
+
+<div
+class="mensagens"
+id="mensagens">
+
+<div class="vazio">
+Carregando mensagens...
+</div>
+
+</div>
+
+
+<div class="area-envio">
+
+<input
+type="text"
+id="campoMensagem"
+placeholder="Digite uma mensagem..."
+autocomplete="off"
+>
+
+<button onclick="enviarMensagem()">
+➤
+</button>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { createClient }
+from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+
+const SUPABASE_URL =
+"https://fviycyrnixbodpsilxuo.supabase.co";
+
+
+const SUPABASE_KEY =
+"COLE_AQUI_SUA_PUBLISHABLE_KEY";
+
+
+const supabase =
+createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+const usuarioId =
+localStorage.getItem("chat_usuario_id");
+
+
+const destinatarioId =
+localStorage.getItem("chat_destinatario_id");
+
+
+if(!usuarioId || !destinatarioId){
+
+    window.location.href =
+        "chat.html";
+
+}
+
+
+// Buscar nome do destinatário
+
+async function carregarDestinatario(){
+
+    const { data, error } =
+        await supabase
+        .from("usuarios")
+        .select("nome")
+        .eq("id", destinatarioId)
+        .single();
+
+
+    if(error){
+
+        console.error(error);
+
+        return;
+    }
+
+
+    document.getElementById(
+        "nomeDestinatario"
+    ).textContent = data.nome;
+
+}
+
+
+// Carregar mensagens
+
+async function carregarMensagens(){
+
+    const area =
+        document.getElementById("mensagens");
+
+
+    const { data, error } =
+        await supabase
+        .from("mensagens")
+        .select("*")
+        .or(
+            `and(remetente_id.eq.${usuarioId},destinatario_id.eq.${destinatarioId}),and(remetente_id.eq.${destinatarioId},destinatario_id.eq.${usuarioId})`
+        )
+        .order("created_at", {
+            ascending:true
+        });
+
+
+    if(error){
+
+        console.error(error);
+
+        area.innerHTML = `
+            <div class="vazio">
+                Erro ao carregar mensagens.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if(!data || data.length === 0){
+
+        area.innerHTML = `
+            <div class="vazio">
+                Nenhuma mensagem ainda. 👋
+                <br>
+                Diga olá!
+            </div>
+        `;
+
+        return;
+    }
+
+
+    area.innerHTML = "";
+
+
+    data.forEach(msg => {
+
+        const div =
+            document.createElement("div");
+
+
+        div.className =
+            "mensagem " +
+            (
+                String(msg.remetente_id) ===
+                String(usuarioId)
+                ? "enviada"
+                : "recebida"
+            );
+
+
+        const texto =
+            document.createElement("div");
+
+        texto.textContent =
+            msg.mensagem;
+
+
+        const hora =
+            document.createElement("div");
+
+        hora.className = "hora";
+
+
+        const dataMensagem =
+            new Date(msg.created_at);
+
+
+        hora.textContent =
+            dataMensagem.toLocaleTimeString(
+                "pt-BR",
+                {
+                    hour:"2-digit",
+                    minute:"2-digit"
+                }
+            );
+
+
+        div.appendChild(texto);
+
+        div.appendChild(hora);
+
+        area.appendChild(div);
+
+    });
+
+
+    area.scrollTop =
+        area.scrollHeight;
+
+}
+
+
+// Enviar mensagem
+
+window.enviarMensagem =
+async function(){
+
+    const campo =
+        document.getElementById(
+            "campoMensagem"
+        );
+
+
+    const texto =
+        campo.value.trim();
+
+
+    if(!texto){
+
+        return;
+    }
+
+
+    campo.disabled = true;
+
+
+    const { error } =
+        await supabase
+        .from("mensagens")
+        .insert({
+
+            remetente_id:
+                usuarioId,
+
+            destinatario_id:
+                destinatarioId,
+
+            mensagem:
+                texto
+
+        });
+
+
+    campo.disabled = false;
+
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            "Erro ao enviar mensagem:\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    campo.value = "";
+
+    await carregarMensagens();
+
+    campo.focus();
+
+};
+
+
+// Enter envia
+
+document
+.getElementById("campoMensagem")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+
+            event.preventDefault();
+
+            enviarMensagem();
+
+        }
+
+    }
+);
+
+
+// Voltar
+
+window.voltar = function(){
+
+    window.location.href =
+        "chat.html";
+
+};
+
+
+// Atualização automática
+
+setInterval(
+    carregarMensagens,
+    3000
+);
+
+
+// Iniciar
+
+carregarDestinatario();
+
+carregarMensagens();
+
+</script>
+
+</body>
+
+</html>
