@@ -1,8 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+
 <meta charset="UTF-8">
 
 <meta name="viewport"
@@ -24,7 +24,6 @@ body{
     min-height:100vh;
     display:flex;
     justify-content:center;
-    align-items:center;
 }
 
 .container{
@@ -89,10 +88,6 @@ button{
     cursor:pointer;
 }
 
-button:active{
-    transform:scale(.98);
-}
-
 footer{
     padding:15px;
     text-align:center;
@@ -109,38 +104,64 @@ footer{
 <div class="container">
 
 <header>
-    <h1>💬 Chat</h1>
-    <p>Converse com seus amigos</p>
+
+<h1>💬 Chat</h1>
+
+<p>Converse com seus amigos</p>
+
 </header>
 
 <div class="content">
 
-    <h2>Entrar no Chat</h2>
+<h2>Entrar no Chat</h2>
 
-    <input
-        type="text"
-        id="nome"
-        placeholder="Digite seu nome"
-    >
+<input
+type="text"
+id="nome"
+placeholder="Digite seu nome"
+>
 
-    <button onclick="entrar()">
-        Entrar 💬
-    </button>
+<input
+type="text"
+id="whatsapp"
+placeholder="WhatsApp (opcional)"
+>
+
+<button onclick="entrar()">
+Entrar 💬
+</button>
 
 </div>
 
 <footer>
-    Chat App
+Chat App
 </footer>
 
 </div>
 
-<script>
+<script type="module">
 
-function entrar(){
+import { createClient }
+from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const SUPABASE_URL =
+"https://fviycyrnixbodpsilxuo.supabase.co";
+
+const SUPABASE_KEY =
+"COLE_AQUI_SUA_PUBLISHABLE_KEY";
+
+const supabase =
+createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+window.entrar = async function(){
 
     const nome =
         document.getElementById("nome").value.trim();
+
+    const whatsapp =
+        document.getElementById("whatsapp").value.trim();
+
 
     if(!nome){
 
@@ -149,13 +170,54 @@ function entrar(){
         return;
     }
 
-    localStorage.setItem("chat_nome", nome);
 
-    alert("Olá, " + nome + "! 👋");
+    const { data, error } =
+        await supabase
+        .from("usuarios")
+        .insert({
 
-}
+            nome: nome,
+
+            whatsapp: whatsapp || null
+
+        })
+        .select()
+        .single();
+
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            "Erro ao cadastrar usuário:\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    localStorage.setItem(
+        "chat_usuario_id",
+        data.id
+    );
+
+    localStorage.setItem(
+        "chat_nome",
+        data.nome
+    );
+
+
+    alert(
+        "Cadastro realizado! 👋\n\n" +
+        "Bem-vindo, " + data.nome + "!"
+    );
+
+};
 
 </script>
 
 </body>
+
 </html>
