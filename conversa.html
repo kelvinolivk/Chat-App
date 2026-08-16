@@ -460,12 +460,41 @@ window.voltar = function(){
 };
 
 
-// Atualização automática
+// Mensagens em tempo real
 
-setInterval(
-    carregarMensagens,
-    3000
-);
+supabase
+.channel("chat-mensagens")
+.on(
+    "postgres_changes",
+    {
+        event: "INSERT",
+        schema: "public",
+        table: "mensagens"
+    },
+    function(payload){
+
+        const msg = payload.new;
+
+        const participaDaConversa =
+            (
+                String(msg.remetente_id) === String(usuarioId) &&
+                String(msg.destinatario_id) === String(destinatarioId)
+            )
+            ||
+            (
+                String(msg.remetente_id) === String(destinatarioId) &&
+                String(msg.destinatario_id) === String(usuarioId)
+            );
+
+        if(participaDaConversa){
+
+            carregarMensagens();
+
+        }
+
+    }
+)
+.subscribe();
 
 
 // Iniciar
