@@ -31,16 +31,18 @@ body{
     max-width:430px;
     min-height:100vh;
     background:#181818;
+    display:flex;
+    flex-direction:column;
 }
 
 header{
-    padding:20px;
+    padding:22px 20px;
     background:linear-gradient(135deg,#6a0dad,#9b30ff);
 }
 
 header h1{
     margin:0;
-    font-size:25px;
+    font-size:27px;
 }
 
 .usuario{
@@ -50,11 +52,12 @@ header h1{
 }
 
 .content{
-    padding:20px;
+    flex:1;
+    padding:18px;
 }
 
 .titulo{
-    font-size:18px;
+    font-size:20px;
     font-weight:bold;
     margin-bottom:15px;
 }
@@ -62,50 +65,65 @@ header h1{
 .lista{
     display:flex;
     flex-direction:column;
-    gap:10px;
 }
 
-.pessoa{
+.conversa{
     display:flex;
     align-items:center;
-    gap:14px;
-    padding:15px;
-    background:#252525;
-    border-radius:14px;
+    gap:13px;
+    padding:15px 5px;
+    border-bottom:1px solid #292929;
     cursor:pointer;
 }
 
-.pessoa:hover{
-    background:#303030;
+.conversa:active{
+    background:#252525;
 }
 
 .avatar{
-    width:45px;
-    height:45px;
+    width:52px;
+    height:52px;
+    min-width:52px;
     border-radius:50%;
     background:#8a2be2;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:20px;
+    font-size:21px;
     font-weight:bold;
+}
+
+.info{
+    flex:1;
+    min-width:0;
 }
 
 .nome{
-    font-size:16px;
+    font-size:17px;
     font-weight:bold;
+    margin-bottom:6px;
 }
 
-.status{
-    font-size:12px;
-    color:#aaa;
-    margin-top:4px;
+.ultima{
+    color:#999;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.hora{
+    color:#888;
+    font-size:11px;
+    align-self:flex-start;
+    margin-top:3px;
 }
 
 .vazio{
     text-align:center;
     color:#888;
-    padding:30px 10px;
+    padding:40px 15px;
+    line-height:1.6;
 }
 
 button{
@@ -137,10 +155,11 @@ Carregando...
 
 </header>
 
+
 <div class="content">
 
 <div class="titulo">
-Pessoas disponíveis
+Conversas
 </div>
 
 <div
@@ -148,7 +167,7 @@ class="lista"
 id="listaUsuarios">
 
 <div class="vazio">
-Carregando usuários...
+Carregando conversas...
 </div>
 
 </div>
@@ -173,7 +192,7 @@ const SUPABASE_URL =
 
 
 const SUPABASE_KEY =
-"sb_publishable_MNkJhCDo4ToSb98V2rBPNA_Ubphvhw1";
+"COLE_AQUI_SUA_PUBLISHABLE_KEY";
 
 
 const supabase =
@@ -182,8 +201,6 @@ createClient(
     SUPABASE_KEY
 );
 
-
-// Usuário logado
 
 const usuarioId =
 localStorage.getItem("chat_usuario_id");
@@ -194,26 +211,29 @@ localStorage.getItem("chat_nome");
 
 if(!usuarioId){
 
-    alert("Você precisa entrar primeiro.");
-
-    window.location.href = "index.html";
+    window.location.href =
+        "index.html";
 
 }
 
 
-document.getElementById("usuarioAtual").textContent =
+document.getElementById(
+    "usuarioAtual"
+).textContent =
 "Olá, " + usuarioNome + " 👋";
 
 
-// Buscar usuários
+// Carregar usuários e últimas mensagens
 
-async function carregarUsuarios(){
+async function carregarConversas(){
 
     const lista =
-        document.getElementById("listaUsuarios");
+        document.getElementById(
+            "listaUsuarios"
+        );
 
 
-    const { data, error } =
+    const { data: usuarios, error } =
         await supabase
         .from("usuarios")
         .select("id,nome,whatsapp")
@@ -227,7 +247,7 @@ async function carregarUsuarios(){
 
         lista.innerHTML = `
             <div class="vazio">
-                Erro ao carregar usuários.
+                Erro ao carregar conversas.
             </div>
         `;
 
@@ -235,29 +255,72 @@ async function carregarUsuarios(){
     }
 
 
-    if(!data || data.length === 0){
+    if(!usuarios || usuarios.length === 0){
 
         lista.innerHTML = `
             <div class="vazio">
-                Ainda não existem outros usuários.
+                Ainda não existem outros usuários. 💜
                 <br><br>
-                Compartilhe o app com um amigo! 💜
+                Cadastre outro usuário para começar
+                uma conversa.
             </div>
         `;
 
         return;
+    }
+
+
+    const { data: mensagens, error: erroMensagens } =
+        await supabase
+        .from("mensagens")
+        .select("*")
+        .or(
+            `remetente_id.eq.${usuarioId},destinatario_id.eq.${usuarioId}`
+        )
+        .order("created_at", {
+            ascending:false
+        });
+
+
+    if(erroMensagens){
+
+        console.error(erroMensagens);
+
     }
 
 
     lista.innerHTML = "";
 
 
-    data.forEach(usuario => {
+    usuarios.forEach(usuario => {
+
+        const mensagensDaPessoa =
+            (mensagens || []).filter(msg =>
+
+                (
+                    String(msg.remetente_id) ===
+                    String(usuario.id)
+                )
+                ||
+                (
+                    String(msg.destinatario_id) ===
+                    String(usuario.id)
+                )
+
+            );
+
+
+        const ultimaMensagem =
+            mensagensDaPessoa.length > 0
+            ? mensagensDaPessoa[0]
+            : null;
+
 
         const div =
             document.createElement("div");
 
-        div.className = "pessoa";
+        div.className =
+            "conversa";
 
 
         const inicial =
@@ -266,22 +329,57 @@ async function carregarUsuarios(){
             .toUpperCase();
 
 
+        let textoUltima =
+            "Toque para conversar 💬";
+
+
+        let horario = "";
+
+
+        if(ultimaMensagem){
+
+            textoUltima =
+                ultimaMensagem.mensagem;
+
+
+            const dataMensagem =
+                new Date(
+                    ultimaMensagem.created_at
+                );
+
+
+            horario =
+                dataMensagem.toLocaleTimeString(
+                    "pt-BR",
+                    {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                );
+
+        }
+
+
         div.innerHTML = `
 
             <div class="avatar">
                 ${inicial}
             </div>
 
-            <div>
+            <div class="info">
 
                 <div class="nome">
                     ${usuario.nome}
                 </div>
 
-                <div class="status">
-                    Toque para conversar 💬
+                <div class="ultima">
+                    ${textoUltima}
                 </div>
 
+            </div>
+
+            <div class="hora">
+                ${horario}
             </div>
 
         `;
@@ -289,7 +387,14 @@ async function carregarUsuarios(){
 
         div.onclick = function(){
 
-            abrirConversa(usuario.id);
+            localStorage.setItem(
+                "chat_destinatario_id",
+                usuario.id
+            );
+
+
+            window.location.href =
+                "conversa.html";
 
         };
 
@@ -297,21 +402,6 @@ async function carregarUsuarios(){
         lista.appendChild(div);
 
     });
-
-}
-
-
-// Abrir conversa
-
-function abrirConversa(id){
-
-    localStorage.setItem(
-        "chat_destinatario_id",
-        id
-    );
-
-    window.location.href =
-        "conversa.html";
 
 }
 
@@ -328,15 +418,37 @@ window.sair = function(){
         "chat_nome"
     );
 
+    localStorage.removeItem(
+        "chat_destinatario_id"
+    );
+
     window.location.href =
         "index.html";
 
 };
 
 
-// Iniciar
+// Atualização das conversas
 
-carregarUsuarios();
+supabase
+.channel("lista-conversas")
+.on(
+    "postgres_changes",
+    {
+        event:"INSERT",
+        schema:"public",
+        table:"mensagens"
+    },
+    function(){
+
+        carregarConversas();
+
+    }
+)
+.subscribe();
+
+
+carregarConversas();
 
 </script>
 
