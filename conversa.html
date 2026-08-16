@@ -36,7 +36,7 @@ body{
 }
 
 header{
-    padding:16px;
+    padding:14px;
     background:linear-gradient(135deg,#6a0dad,#9b30ff);
     display:flex;
     align-items:center;
@@ -44,8 +44,9 @@ header{
 }
 
 .voltar{
-    font-size:25px;
+    font-size:30px;
     cursor:pointer;
+    width:35px;
 }
 
 .info{
@@ -61,6 +62,17 @@ header{
     margin:4px 0 0;
     font-size:12px;
     opacity:.8;
+}
+
+.apagar{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:50%;
+    background:rgba(0,0,0,.2);
+    color:white;
+    font-size:19px;
+    cursor:pointer;
 }
 
 .mensagens{
@@ -144,7 +156,8 @@ header{
 
 <header>
 
-<div class="voltar"
+<div
+class="voltar"
 onclick="voltar()">
 ‹
 </div>
@@ -158,6 +171,15 @@ Carregando...
 <p>💬 Conversa</p>
 
 </div>
+
+<button
+class="apagar"
+onclick="apagarConversa()"
+title="Apagar conversa">
+
+🗑️
+
+</button>
 
 </header>
 
@@ -228,7 +250,7 @@ if(!usuarioId || !destinatarioId){
 }
 
 
-// Buscar nome do destinatário
+// Carregar nome
 
 async function carregarDestinatario(){
 
@@ -260,7 +282,9 @@ async function carregarDestinatario(){
 async function carregarMensagens(){
 
     const area =
-        document.getElementById("mensagens");
+        document.getElementById(
+            "mensagens"
+        );
 
 
     const { data, error } =
@@ -325,6 +349,7 @@ async function carregarMensagens(){
         const texto =
             document.createElement("div");
 
+
         texto.textContent =
             msg.mensagem;
 
@@ -332,7 +357,9 @@ async function carregarMensagens(){
         const hora =
             document.createElement("div");
 
-        hora.className = "hora";
+
+        hora.className =
+            "hora";
 
 
         const dataMensagem =
@@ -423,9 +450,56 @@ async function(){
 
     campo.value = "";
 
-    await carregarMensagens();
-
     campo.focus();
+
+};
+
+
+// Apagar conversa
+
+window.apagarConversa =
+async function(){
+
+    const confirmar =
+        confirm(
+            "🗑️ Apagar toda a conversa?\n\n" +
+            "Todas as mensagens entre vocês serão apagadas."
+        );
+
+
+    if(!confirmar){
+
+        return;
+    }
+
+
+    const { error } =
+        await supabase
+        .from("mensagens")
+        .delete()
+        .or(
+            `and(remetente_id.eq.${usuarioId},destinatario_id.eq.${destinatarioId}),and(remetente_id.eq.${destinatarioId},destinatario_id.eq.${usuarioId})`
+        );
+
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            "Erro ao apagar conversa:\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    alert("Conversa apagada! 🗑️");
+
+
+    window.location.href =
+        "chat.html";
 
 };
 
@@ -460,31 +534,42 @@ window.voltar = function(){
 };
 
 
-// Mensagens em tempo real
+// Realtime
 
 supabase
-.channel("chat-mensagens")
+.channel(
+    "chat-mensagens"
+)
 .on(
     "postgres_changes",
     {
-        event: "INSERT",
-        schema: "public",
-        table: "mensagens"
+        event:"INSERT",
+        schema:"public",
+        table:"mensagens"
     },
     function(payload){
 
-        const msg = payload.new;
+        const msg =
+            payload.new;
+
 
         const participaDaConversa =
             (
-                String(msg.remetente_id) === String(usuarioId) &&
-                String(msg.destinatario_id) === String(destinatarioId)
+                String(msg.remetente_id) ===
+                String(usuarioId)
+                &&
+                String(msg.destinatario_id) ===
+                String(destinatarioId)
             )
             ||
             (
-                String(msg.remetente_id) === String(destinatarioId) &&
-                String(msg.destinatario_id) === String(usuarioId)
+                String(msg.remetente_id) ===
+                String(destinatarioId)
+                &&
+                String(msg.destinatario_id) ===
+                String(usuarioId)
             );
+
 
         if(participaDaConversa){
 
