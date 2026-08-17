@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>Chat 💬</title>
+<title>Fifi 💋</title>
 
 <style>
 
@@ -19,48 +19,160 @@ content="width=device-width, initial-scale=1.0">
 body{
     margin:0;
     font-family:Arial,sans-serif;
-    background:#111;
     color:white;
     min-height:100vh;
+
     display:flex;
     justify-content:center;
+
+    background:
+        radial-gradient(
+            circle at 10% 15%,
+            rgba(255,20,147,.25),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 90% 30%,
+            rgba(155,48,255,.25),
+            transparent 28%
+        ),
+        linear-gradient(
+            135deg,
+            #170916,
+            #2a0b32,
+            #120817
+        );
 }
 
 .container{
     width:100%;
     max-width:430px;
     min-height:100vh;
-    background:#181818;
+
     display:flex;
     flex-direction:column;
+
+    position:relative;
+    overflow:hidden;
+
+    background:
+        radial-gradient(
+            circle at 20% 70%,
+            rgba(255,20,147,.08),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 80% 80%,
+            rgba(138,43,226,.10),
+            transparent 25%
+        );
 }
+
+
+/* DECORAÇÕES */
+
+.container::before{
+    content:
+        "💋   ✨   💕   ✨   💋   💕";
+
+    position:absolute;
+
+    top:120px;
+    left:-20px;
+    right:-20px;
+
+    font-size:26px;
+    letter-spacing:14px;
+    line-height:90px;
+
+    opacity:.07;
+
+    transform:rotate(-10deg);
+
+    pointer-events:none;
+}
+
+.container::after{
+    content:
+        "💕     ✨      💋      ✨     💕";
+
+    position:absolute;
+
+    bottom:150px;
+    left:-20px;
+    right:-20px;
+
+    font-size:28px;
+    line-height:100px;
+
+    opacity:.06;
+
+    transform:rotate(8deg);
+
+    pointer-events:none;
+}
+
+
+/* CABEÇALHO */
 
 header{
     padding:22px 20px;
-    background:linear-gradient(135deg,#6a0dad,#9b30ff);
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1493,
+            #c026ff,
+            #7b2cff
+        );
+
+    box-shadow:
+        0 5px 25px
+        rgba(255,20,147,.35);
+
+    position:relative;
+    z-index:5;
 }
 
-header h1{
-    margin:0;
-    font-size:27px;
+.logo{
+    font-size:30px;
+    font-weight:bold;
+
+    text-shadow:
+        0 2px 10px
+        rgba(0,0,0,.3);
 }
 
 .usuario{
-    margin-top:6px;
+    margin-top:5px;
+
     font-size:14px;
-    opacity:.85;
+
+    opacity:.9;
 }
+
+
+/* CONTEÚDO */
 
 .content{
     flex:1;
-    padding:18px;
+
+    padding:20px;
+
+    position:relative;
+    z-index:2;
 }
 
 .titulo{
-    font-size:20px;
+    font-size:21px;
+
     font-weight:bold;
+
     margin-bottom:15px;
 }
+
+
+/* LISTA */
 
 .lista{
     display:flex;
@@ -70,28 +182,59 @@ header h1{
 .conversa{
     display:flex;
     align-items:center;
+
     gap:13px;
+
     padding:15px 5px;
-    border-bottom:1px solid #292929;
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,.08);
+
     cursor:pointer;
+
+    border-radius:12px;
+
+    transition:.2s;
 }
 
 .conversa:active{
-    background:#252525;
+    background:
+        rgba(255,20,147,.10);
 }
 
+
+/* AVATAR */
+
 .avatar{
-    width:52px;
-    height:52px;
-    min-width:52px;
+    width:54px;
+    height:54px;
+
+    min-width:54px;
+
     border-radius:50%;
-    background:#8a2be2;
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     font-size:21px;
     font-weight:bold;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1493,
+            #8a2be2
+        );
+
+    box-shadow:
+        0 4px 15px
+        rgba(255,20,147,.25);
 }
+
+
+/* INFORMAÇÕES */
 
 .info{
     flex:1;
@@ -101,61 +244,115 @@ header h1{
 .nome{
     font-size:17px;
     font-weight:bold;
+
     margin-bottom:6px;
 }
 
 .ultima{
-    color:#999;
+    color:#c8a9ca;
+
     font-size:14px;
+
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.hora{
-    color:#888;
-    font-size:11px;
-    align-self:flex-start;
-    margin-top:3px;
-}
 
-.nao-lidas{
-    min-width:22px;
-    height:22px;
-    padding:0 6px;
-    border-radius:12px;
-    background:#8a2be2;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:11px;
-    font-weight:bold;
-    margin-top:7px;
-}
+/* LADO DIREITO */
 
 .area-direita{
     display:flex;
     flex-direction:column;
+
     align-items:flex-end;
 }
 
-.vazio{
-    text-align:center;
-    color:#888;
-    padding:40px 15px;
-    line-height:1.6;
+.hora{
+    color:#b994ba;
+
+    font-size:11px;
 }
 
-button{
-    margin-top:20px;
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:12px;
-    background:#292929;
+
+/* NÃO LIDAS */
+
+.nao-lidas{
+    min-width:23px;
+    height:23px;
+
+    padding:0 6px;
+
+    margin-top:7px;
+
+    border-radius:50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1493,
+            #8a2be2
+        );
+
     color:white;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    font-size:11px;
+    font-weight:bold;
+
+    box-shadow:
+        0 3px 10px
+        rgba(255,20,147,.35);
+}
+
+
+/* VAZIO */
+
+.vazio{
+    text-align:center;
+
+    color:#c9a7ca;
+
+    padding:45px 15px;
+
+    line-height:1.7;
+}
+
+
+/* BOTÃO SAIR */
+
+button{
+    margin-top:25px;
+
+    width:100%;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:25px;
+
+    background:
+        rgba(255,255,255,.08);
+
+    color:#e7c8e8;
+
     font-size:15px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
+
+    cursor:pointer;
+}
+
+button:active{
+    background:
+        rgba(255,20,147,.15);
 }
 
 </style>
@@ -168,10 +365,16 @@ button{
 
 <header>
 
-<h1>💬 Chat</h1>
+<div class="logo">
+💋 Fifi
+</div>
 
-<div class="usuario" id="usuarioAtual">
+<div
+class="usuario"
+id="usuarioAtual">
+
 Carregando...
+
 </div>
 
 </header>
@@ -180,8 +383,9 @@ Carregando...
 <div class="content">
 
 <div class="titulo">
-Conversas
+Conversas 💕
 </div>
+
 
 <div
 class="lista"
@@ -193,8 +397,9 @@ Carregando conversas...
 
 </div>
 
+
 <button onclick="sair()">
-Sair
+🚪 Sair
 </button>
 
 </div>
@@ -213,7 +418,7 @@ const SUPABASE_URL =
 
 
 const SUPABASE_KEY =
-"sb_publishable_MNkJhCDo4ToSb98V2rBPNA_Ubphvhw1";
+"COLE_AQUI_SUA_PUBLISHABLE_KEY";
 
 
 const supabase =
@@ -225,6 +430,7 @@ createClient(
 
 const usuarioId =
 localStorage.getItem("chat_usuario_id");
+
 
 const usuarioNome =
 localStorage.getItem("chat_nome");
@@ -241,10 +447,8 @@ if(!usuarioId){
 document.getElementById(
     "usuarioAtual"
 ).textContent =
-"Olá, " + usuarioNome + " 👋";
+"Olá, " + usuarioNome + " 💕";
 
-
-// Carregar usuários e mensagens
 
 async function carregarConversas(){
 
@@ -280,10 +484,18 @@ async function carregarConversas(){
 
         lista.innerHTML = `
             <div class="vazio">
-                Ainda não existem outros usuários. 💜
-                <br><br>
-                Cadastre outro usuário para começar
-                uma conversa.
+
+                💋
+
+                <br>
+
+                Ainda não existem outras pessoas.
+
+                <br>
+
+                Cadastre outro usuário para
+                começar uma conversa. 💕
+
             </div>
         `;
 
@@ -318,15 +530,13 @@ async function carregarConversas(){
         const mensagensDaPessoa =
             (mensagens || []).filter(msg =>
 
-                (
-                    String(msg.remetente_id) ===
-                    String(usuario.id)
-                )
+                String(msg.remetente_id) ===
+                String(usuario.id)
+
                 ||
-                (
-                    String(msg.destinatario_id) ===
-                    String(usuario.id)
-                )
+
+                String(msg.destinatario_id) ===
+                String(usuario.id)
 
             );
 
@@ -339,6 +549,7 @@ async function carregarConversas(){
 
         const div =
             document.createElement("div");
+
 
         div.className =
             "conversa";
@@ -384,8 +595,6 @@ async function carregarConversas(){
         }
 
 
-        // Contar mensagens recebidas e não lidas
-
         naoLidas =
             mensagensDaPessoa.filter(msg =>
 
@@ -425,7 +634,9 @@ async function carregarConversas(){
 
                 ${
                     naoLidas > 0
-                    ? `<div class="nao-lidas">${naoLidas}</div>`
+                    ? `<div class="nao-lidas">
+                        ${naoLidas}
+                       </div>`
                     : ""
                 }
 
@@ -455,8 +666,6 @@ async function carregarConversas(){
 }
 
 
-// Sair
-
 window.sair = function(){
 
     localStorage.removeItem(
@@ -476,8 +685,6 @@ window.sair = function(){
 
 };
 
-
-// Atualização das conversas em tempo real
 
 supabase
 .channel("lista-conversas")
