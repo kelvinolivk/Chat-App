@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>Conversa 💬</title>
+<title>Fifi 💋</title>
 
 <style>
 
@@ -19,32 +19,96 @@ content="width=device-width, initial-scale=1.0">
 body{
     margin:0;
     font-family:Arial,sans-serif;
-    background:#111;
     color:white;
     min-height:100vh;
     display:flex;
     justify-content:center;
+
+    background:
+        radial-gradient(circle at 15% 20%, rgba(255,105,180,.25), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(155,48,255,.25), transparent 28%),
+        linear-gradient(135deg,#170916,#2a0b32,#120817);
 }
 
 .container{
     width:100%;
     max-width:430px;
     height:100vh;
-    background:#181818;
+
     display:flex;
     flex-direction:column;
+
+    position:relative;
+    overflow:hidden;
+
+    background:
+        radial-gradient(circle at 20% 70%, rgba(255,20,147,.08), transparent 25%),
+        radial-gradient(circle at 80% 80%, rgba(138,43,226,.10), transparent 25%);
 }
+
+
+/* DECORAÇÃO */
+
+.container::before{
+    content:"💋  ✨  💕  ✨  💋  💕  ✨";
+    position:absolute;
+    top:100px;
+    left:-20px;
+    right:-20px;
+
+    font-size:25px;
+    letter-spacing:20px;
+    line-height:80px;
+
+    opacity:.08;
+    transform:rotate(-12deg);
+
+    pointer-events:none;
+}
+
+.container::after{
+    content:"💕     ✨       💋       ✨     💕";
+    position:absolute;
+    bottom:130px;
+    left:-20px;
+    right:-20px;
+
+    font-size:28px;
+    line-height:90px;
+
+    opacity:.07;
+    transform:rotate(10deg);
+
+    pointer-events:none;
+}
+
+
+/* CABEÇALHO */
 
 header{
     padding:14px;
-    background:linear-gradient(135deg,#6a0dad,#9b30ff);
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1493,
+            #c026ff,
+            #7b2cff
+        );
+
     display:flex;
     align-items:center;
     gap:12px;
+
+    box-shadow:
+        0 4px 25px rgba(255,20,147,.35);
+
+    position:relative;
+    z-index:5;
 }
 
 .voltar{
-    font-size:30px;
+    font-size:32px;
     cursor:pointer;
     width:35px;
 }
@@ -55,95 +119,203 @@ header{
 
 .info h1{
     margin:0;
-    font-size:19px;
+    font-size:20px;
+    text-shadow:0 2px 8px rgba(0,0,0,.3);
 }
 
 .info p{
     margin:4px 0 0;
     font-size:12px;
-    opacity:.8;
+    opacity:.9;
 }
 
 .apagar{
     width:42px;
     height:42px;
+
     border:none;
     border-radius:50%;
-    background:rgba(0,0,0,.2);
+
+    background:rgba(0,0,0,.20);
+
     color:white;
-    font-size:19px;
+    font-size:18px;
+
     cursor:pointer;
 }
 
+
+/* MENSAGENS */
+
 .mensagens{
     flex:1;
-    padding:18px;
+
+    padding:20px 15px;
+
     overflow-y:auto;
+
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:11px;
+
+    position:relative;
+    z-index:2;
 }
 
 .vazio{
     text-align:center;
-    color:#777;
+    color:#d7a9d8;
     margin:auto;
 }
 
+
+/* BALÕES */
+
 .mensagem{
     max-width:78%;
-    padding:11px 14px;
-    border-radius:16px;
+
+    padding:12px 15px;
+
+    border-radius:19px;
+
     word-wrap:break-word;
+
     font-size:15px;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.25);
+
+    animation:
+        aparecer .2s ease;
 }
+
+@keyframes aparecer{
+
+    from{
+        opacity:0;
+        transform:translateY(5px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+
+/* ENVIADA */
 
 .enviada{
     align-self:flex-end;
-    background:#8a2be2;
-    border-bottom-right-radius:4px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1493,
+            #a72cff
+        );
+
+    border-bottom-right-radius:5px;
+
 }
+
+
+/* RECEBIDA */
 
 .recebida{
     align-self:flex-start;
-    background:#292929;
-    border-bottom-left-radius:4px;
+
+    background:
+        rgba(255,255,255,.10);
+
+    border:1px solid
+        rgba(255,255,255,.08);
+
+    backdrop-filter:blur(8px);
+
+    border-bottom-left-radius:5px;
 }
+
 
 .hora{
     font-size:10px;
-    opacity:.65;
+
+    opacity:.7;
+
     margin-top:5px;
+
     text-align:right;
 }
 
+
+/* ÁREA DE ENVIO */
+
 .area-envio{
     padding:12px;
-    background:#202020;
+
+    background:
+        rgba(20,5,25,.92);
+
     display:flex;
     gap:8px;
+
+    position:relative;
+    z-index:5;
+
+    border-top:
+        1px solid rgba(255,255,255,.08);
 }
 
 .area-envio input{
     flex:1;
-    padding:14px;
+
+    padding:14px 17px;
+
     border:none;
-    border-radius:22px;
-    background:#303030;
+
+    border-radius:25px;
+
+    background:
+        rgba(255,255,255,.10);
+
     color:white;
+
     outline:none;
+
     font-size:15px;
+
+    border:
+        1px solid rgba(255,255,255,.08);
+}
+
+.area-envio input::placeholder{
+    color:#c9a6ca;
 }
 
 .area-envio button{
     width:50px;
     height:50px;
+
     border:none;
+
     border-radius:50%;
-    background:#8a2be2;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1493,
+            #8a2be2
+        );
+
     color:white;
+
     font-size:20px;
+
     cursor:pointer;
+
+    box-shadow:
+        0 4px 15px rgba(255,20,147,.35);
 }
 
 </style>
@@ -168,7 +340,7 @@ onclick="voltar()">
 Carregando...
 </h1>
 
-<p>💬 Conversa</p>
+<p>💋 Fifi • Conversa</p>
 
 </div>
 
@@ -224,7 +396,7 @@ const SUPABASE_URL =
 
 
 const SUPABASE_KEY =
-"sb_publishable_MNkJhCDo4ToSb98V2rBPNA_Ubphvhw1";
+"COLE_AQUI_SUA_PUBLISHABLE_KEY";
 
 
 const supabase =
@@ -250,8 +422,6 @@ if(!usuarioId || !destinatarioId){
 }
 
 
-// Carregar nome
-
 async function carregarDestinatario(){
 
     const { data, error } =
@@ -276,8 +446,6 @@ async function carregarDestinatario(){
 
 }
 
-
-// Carregar mensagens
 
 async function carregarMensagens(){
 
@@ -317,7 +485,7 @@ async function carregarMensagens(){
 
         area.innerHTML = `
             <div class="vazio">
-                Nenhuma mensagem ainda. 👋
+                Nenhuma mensagem ainda. 💋
                 <br>
                 Diga olá!
             </div>
@@ -391,8 +559,6 @@ async function carregarMensagens(){
 }
 
 
-// Enviar mensagem
-
 window.enviarMensagem =
 async function(){
 
@@ -455,8 +621,6 @@ async function(){
 };
 
 
-// Apagar conversa
-
 window.apagarConversa =
 async function(){
 
@@ -504,8 +668,6 @@ async function(){
 };
 
 
-// Enter envia
-
 document
 .getElementById("campoMensagem")
 .addEventListener(
@@ -524,8 +686,6 @@ document
 );
 
 
-// Voltar
-
 window.voltar = function(){
 
     window.location.href =
@@ -534,12 +694,8 @@ window.voltar = function(){
 };
 
 
-// Realtime
-
 supabase
-.channel(
-    "chat-mensagens"
-)
+.channel("chat-mensagens")
 .on(
     "postgres_changes",
     {
@@ -581,8 +737,6 @@ supabase
 )
 .subscribe();
 
-
-// Iniciar
 
 carregarDestinatario();
 
