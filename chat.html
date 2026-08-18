@@ -192,10 +192,6 @@ header{
     cursor:pointer;
 }
 
-.apagar:active{
-    background:rgba(255,20,147,.25);
-}
-
 .vazio{
     text-align:center;
     color:#c9a7ca;
@@ -238,13 +234,13 @@ Carregando...
 <div class="content">
 
 <div class="titulo">
-Conversas 💕
+Contatos 💕
 </div>
 
 <div class="lista" id="listaUsuarios">
 
 <div class="vazio">
-Carregando conversas...
+Carregando usuários...
 </div>
 
 </div>
@@ -299,9 +295,9 @@ document.getElementById(
 "Olá, " + usuarioNome + " 💕";
 
 
-// CARREGAR CONVERSAS
+// CARREGAR USUÁRIOS
 
-async function carregarConversas(){
+async function carregarUsuarios(){
 
     const lista =
         document.getElementById(
@@ -309,7 +305,50 @@ async function carregarConversas(){
         );
 
 
-    const { data: mensagens, error } =
+    const { data: usuarios, error } =
+        await supabase
+        .from("usuarios")
+        .select("id,nome,whatsapp")
+        .neq("id",usuarioId)
+        .order("nome");
+
+
+    if(error){
+
+        console.error(error);
+
+        lista.innerHTML = `
+            <div class="vazio">
+                Erro ao carregar contatos.
+                <br><br>
+                ${error.message}
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if(!usuarios || usuarios.length === 0){
+
+        lista.innerHTML = `
+            <div class="vazio">
+                💋
+                <br><br>
+                Ainda não existem outros usuários.
+                <br>
+                Quando alguém se cadastrar,
+                aparecerá aqui. 💕
+            </div>
+        `;
+
+        return;
+    }
+
+
+    // Buscar mensagens para mostrar última mensagem
+
+    const { data: mensagens } =
         await supabase
         .from("mensagens")
         .select("*")
@@ -321,82 +360,13 @@ async function carregarConversas(){
         });
 
 
-    if(error){
-
-        console.error(error);
-
-        lista.innerHTML = `
-            <div class="vazio">
-                Erro ao carregar conversas.
-            </div>
-        `;
-
-        return;
-    }
-
-
-    if(!mensagens || mensagens.length === 0){
-
-        lista.innerHTML = `
-            <div class="vazio">
-                💋
-                <br><br>
-                Você ainda não possui conversas.
-                <br>
-                Comece uma conversa! 💕
-            </div>
-        `;
-
-        return;
-    }
-
-
-    // Descobrir quais usuários realmente possuem conversa
-
-    const idsPessoas = [];
-
-    mensagens.forEach(msg => {
-
-        const outraPessoa =
-            String(msg.remetente_id) ===
-            String(usuarioId)
-
-            ? String(msg.destinatario_id)
-
-            : String(msg.remetente_id);
-
-
-        if(!idsPessoas.includes(outraPessoa)){
-
-            idsPessoas.push(outraPessoa);
-
-        }
-
-    });
-
-
-    const { data: usuarios, error: erroUsuarios } =
-        await supabase
-        .from("usuarios")
-        .select("id,nome,whatsapp")
-        .in("id",idsPessoas);
-
-
-    if(erroUsuarios){
-
-        console.error(erroUsuarios);
-
-        return;
-    }
-
-
     lista.innerHTML = "";
 
 
     usuarios.forEach(usuario => {
 
         const mensagensDaPessoa =
-            mensagens.filter(msg =>
+            (mensagens || []).filter(msg =>
 
                 (
                     String(msg.remetente_id) ===
@@ -414,20 +384,9 @@ async function carregarConversas(){
 
 
         const ultimaMensagem =
-            mensagensDaPessoa[0];
-
-
-        const naoLidas =
-            mensagensDaPessoa.filter(msg =>
-
-                String(msg.destinatario_id) ===
-                String(usuarioId)
-
-                &&
-
-                msg.lida === false
-
-            ).length;
+            mensagensDaPessoa.length > 0
+            ? mensagensDaPessoa[0]
+            : null;
 
 
         const div =
@@ -444,20 +403,49 @@ async function carregarConversas(){
             .toUpperCase();
 
 
-        const dataMensagem =
-            new Date(
-                ultimaMensagem.created_at
-            );
+        let ultimaTexto =
+            "Toque para iniciar uma conversa 💕";
 
 
-        const horario =
-            dataMensagem.toLocaleTimeString(
-                "pt-BR",
-                {
-                    hour:"2-digit",
-                    minute:"2-digit"
-                }
-            );
+        let horario =
+            "";
+
+
+        if(ultimaMensagem){
+
+            ultimaTexto =
+                ultimaMensagem.mensagem;
+
+
+            const dataMensagem =
+                new Date(
+                    ultimaMensagem.created_at
+                );
+
+
+            horario =
+                dataMensagem.toLocaleTimeString(
+                    "pt-BR",
+                    {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                );
+
+        }
+
+
+        const naoLidas =
+            mensagensDaPessoa.filter(msg =>
+
+                String(msg.destinatario_id) ===
+                String(usuarioId)
+
+                &&
+
+                msg.lida === false
+
+            ).length;
 
 
         div.innerHTML = `
@@ -475,7 +463,7 @@ async function carregarConversas(){
                     </div>
 
                     <div class="ultima">
-                        ${ultimaMensagem.mensagem}
+                        ${ultimaTexto}
                     </div>
 
                 </div>
@@ -484,9 +472,13 @@ async function carregarConversas(){
 
             <div class="area-direita">
 
-                <div class="hora">
-                    ${horario}
-                </div>
+                ${
+                    horario
+                    ? `<div class="hora">
+                        ${horario}
+                       </div>`
+                    : ""
+                }
 
                 ${
                     naoLidas > 0
@@ -498,16 +490,22 @@ async function carregarConversas(){
 
             </div>
 
-            <button
-                class="apagar"
-                title="Apagar conversa">
-                🗑️
-            </button>
+            ${
+                mensagensDaPessoa.length > 0
+                ? `
+                <button
+                    class="apagar"
+                    title="Apagar conversa">
+                    🗑️
+                </button>
+                `
+                : ""
+            }
 
         `;
 
 
-        // Abrir conversa
+        // ABRIR CONVERSA
 
         div.querySelector(
             ".area-conversa"
@@ -524,78 +522,64 @@ async function carregarConversas(){
         };
 
 
-        // Apagar conversa
+        // APAGAR CONVERSA
 
-        div.querySelector(
-            ".apagar"
-        ).onclick = async function(event){
-
-            event.stopPropagation();
+        const botaoApagar =
+            div.querySelector(".apagar");
 
 
-            const confirmar =
-                confirm(
-                    "🗑️ Apagar conversa com " +
-                    usuario.nome +
-                    "?\n\n" +
-                    "Todas as mensagens dessa conversa serão apagadas."
-                );
+        if(botaoApagar){
+
+            botaoApagar.onclick =
+            async function(event){
+
+                event.stopPropagation();
 
 
-            if(!confirmar){
-
-                return;
-
-            }
-
-
-            const { error } =
-                await supabase
-                .from("mensagens")
-                .delete()
-                .or(
-                    `and(remetente_id.eq.${usuarioId},destinatario_id.eq.${usuario.id}),and(remetente_id.eq.${usuario.id},destinatario_id.eq.${usuarioId})`
-                );
+                const confirmar =
+                    confirm(
+                        "🗑️ Apagar conversa com " +
+                        usuario.nome +
+                        "?\n\n" +
+                        "Todas as mensagens dessa conversa serão apagadas."
+                    );
 
 
-            if(error){
+                if(!confirmar){
 
-                console.error(error);
+                    return;
 
-                alert(
-                    "Erro ao apagar conversa:\n" +
-                    error.message
-                );
-
-                return;
-
-            }
+                }
 
 
-            // Remover imediatamente da tela
+                const { error } =
+                    await supabase
+                    .from("mensagens")
+                    .delete()
+                    .or(
+                        `and(remetente_id.eq.${usuarioId},destinatario_id.eq.${usuario.id}),and(remetente_id.eq.${usuario.id},destinatario_id.eq.${usuarioId})`
+                    );
 
-            div.remove();
+
+                if(error){
+
+                    console.error(error);
+
+                    alert(
+                        "Erro ao apagar conversa:\n" +
+                        error.message
+                    );
+
+                    return;
+
+                }
 
 
-            // Se não restou nenhuma conversa
+                carregarUsuarios();
 
-            if(
-                document.querySelectorAll(
-                    ".conversa"
-                ).length === 0
-            ){
+            };
 
-                lista.innerHTML = `
-                    <div class="vazio">
-                        💋
-                        <br><br>
-                        Você ainda não possui conversas.
-                    </div>
-                `;
-
-            }
-
-        };
+        }
 
 
         lista.appendChild(div);
@@ -627,10 +611,28 @@ window.sair = function(){
 };
 
 
-// REALTIME
+// ATUALIZAÇÃO EM TEMPO REAL
 
 supabase
-.channel("lista-conversas")
+.channel("lista-contatos")
+.on(
+    "postgres_changes",
+    {
+        event:"INSERT",
+        schema:"public",
+        table:"usuarios"
+    },
+    function(){
+
+        carregarUsuarios();
+
+    }
+)
+.subscribe();
+
+
+supabase
+.channel("lista-mensagens")
 .on(
     "postgres_changes",
     {
@@ -640,14 +642,14 @@ supabase
     },
     function(){
 
-        carregarConversas();
+        carregarUsuarios();
 
     }
 )
 .subscribe();
 
 
-carregarConversas();
+carregarUsuarios();
 
 </script>
 
