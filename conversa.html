@@ -46,9 +46,6 @@ body{
         radial-gradient(circle at 80% 80%, rgba(138,43,226,.10), transparent 25%);
 }
 
-
-/* DECORAÇÃO */
-
 .container::before{
     content:"💋  ✨  💕  ✨  💋  💕  ✨";
     position:absolute;
@@ -81,9 +78,6 @@ body{
 
     pointer-events:none;
 }
-
-
-/* CABEÇALHO */
 
 header{
     padding:14px;
@@ -144,9 +138,6 @@ header{
     cursor:pointer;
 }
 
-
-/* MENSAGENS */
-
 .mensagens{
     flex:1;
 
@@ -168,9 +159,6 @@ header{
     margin:auto;
 }
 
-
-/* BALÕES */
-
 .mensagem{
     max-width:78%;
 
@@ -184,27 +172,7 @@ header{
 
     box-shadow:
         0 4px 12px rgba(0,0,0,.25);
-
-    animation:
-        aparecer .2s ease;
 }
-
-@keyframes aparecer{
-
-    from{
-        opacity:0;
-        transform:translateY(5px);
-    }
-
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-
-}
-
-
-/* ENVIADA */
 
 .enviada{
     align-self:flex-end;
@@ -217,11 +185,7 @@ header{
         );
 
     border-bottom-right-radius:5px;
-
 }
-
-
-/* RECEBIDA */
 
 .recebida{
     align-self:flex-start;
@@ -237,7 +201,6 @@ header{
     border-bottom-left-radius:5px;
 }
 
-
 .hora{
     font-size:10px;
 
@@ -247,9 +210,6 @@ header{
 
     text-align:right;
 }
-
-
-/* ÁREA DE ENVIO */
 
 .area-envio{
     padding:12px;
@@ -313,9 +273,6 @@ header{
     font-size:20px;
 
     cursor:pointer;
-
-    box-shadow:
-        0 4px 15px rgba(255,20,147,.35);
 }
 
 </style>
@@ -355,7 +312,6 @@ title="Apagar conversa">
 
 </header>
 
-
 <div
 class="mensagens"
 id="mensagens">
@@ -365,7 +321,6 @@ Carregando mensagens...
 </div>
 
 </div>
-
 
 <div class="area-envio">
 
@@ -383,7 +338,6 @@ autocomplete="off"
 </div>
 
 </div>
-
 
 <script type="module">
 
@@ -406,21 +360,41 @@ createClient(
 );
 
 
-const usuarioId =
-localStorage.getItem("chat_usuario_id");
+// IDs DO USUÁRIO
 
+const usuarioId =
+    localStorage.getItem("chat_usuario_id");
 
 const destinatarioId =
-localStorage.getItem("chat_destinatario_id");
+    localStorage.getItem("chat_destinatario_id");
 
+
+console.log(
+    "USUÁRIO:",
+    usuarioId
+);
+
+console.log(
+    "DESTINATÁRIO:",
+    destinatarioId
+);
+
+
+// VERIFICAÇÃO
 
 if(!usuarioId || !destinatarioId){
+
+    alert(
+        "Não foi possível identificar a conversa."
+    );
 
     window.location.href =
         "chat.html";
 
 }
 
+
+// CARREGAR NOME
 
 async function carregarDestinatario(){
 
@@ -429,23 +403,33 @@ async function carregarDestinatario(){
         .from("usuarios")
         .select("nome")
         .eq("id", destinatarioId)
-        .single();
+        .maybeSingle();
 
 
     if(error){
 
-        console.error(error);
+        console.error(
+            "Erro destinatário:",
+            error
+        );
 
         return;
     }
 
 
-    document.getElementById(
-        "nomeDestinatario"
-    ).textContent = data.nome;
+    if(data){
+
+        document.getElementById(
+            "nomeDestinatario"
+        ).textContent =
+            data.nome;
+
+    }
 
 }
 
+
+// CARREGAR MENSAGENS
 
 async function carregarMensagens(){
 
@@ -458,18 +442,26 @@ async function carregarMensagens(){
     const { data, error } =
         await supabase
         .from("mensagens")
-        .select("*")
+        .select(
+            "id,remetente_id,destinatario_id,mensagem,created_at,lida"
+        )
         .or(
             `and(remetente_id.eq.${usuarioId},destinatario_id.eq.${destinatarioId}),and(remetente_id.eq.${destinatarioId},destinatario_id.eq.${usuarioId})`
         )
-        .order("created_at", {
-            ascending:true
-        });
+        .order(
+            "created_at",
+            {
+                ascending:true
+            }
+        );
 
 
     if(error){
 
-        console.error(error);
+        console.error(
+            "Erro mensagens:",
+            error
+        );
 
         area.innerHTML = `
             <div class="vazio">
@@ -501,21 +493,33 @@ async function carregarMensagens(){
     data.forEach(msg => {
 
         const div =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
+
+        const minhaMensagem =
+            String(
+                msg.remetente_id
+            ) ===
+            String(
+                usuarioId
+            );
 
 
         div.className =
             "mensagem " +
             (
-                String(msg.remetente_id) ===
-                String(usuarioId)
+                minhaMensagem
                 ? "enviada"
                 : "recebida"
             );
 
 
         const texto =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
         texto.textContent =
@@ -523,7 +527,9 @@ async function carregarMensagens(){
 
 
         const hora =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
         hora.className =
@@ -531,7 +537,9 @@ async function carregarMensagens(){
 
 
         const dataMensagem =
-            new Date(msg.created_at);
+            new Date(
+                msg.created_at
+            );
 
 
         hora.textContent =
@@ -559,6 +567,8 @@ async function carregarMensagens(){
 }
 
 
+// ENVIAR
+
 window.enviarMensagem =
 async function(){
 
@@ -575,27 +585,33 @@ async function(){
     if(!texto){
 
         return;
+
     }
 
 
     campo.disabled = true;
 
 
-    const { error } =
+    const { data, error } =
         await supabase
         .from("mensagens")
         .insert({
 
             remetente_id:
-                usuarioId,
+                Number(usuarioId),
 
             destinatario_id:
-                destinatarioId,
+                Number(destinatarioId),
 
             mensagem:
-                texto
+                texto,
 
-        });
+            lida:
+                false
+
+        })
+        .select()
+        .single();
 
 
     campo.disabled = false;
@@ -603,14 +619,18 @@ async function(){
 
     if(error){
 
-        console.error(error);
+        console.error(
+            "Erro ao enviar:",
+            error
+        );
 
         alert(
-            "Erro ao enviar mensagem:\n" +
+            "Erro ao enviar:\n" +
             error.message
         );
 
         return;
+
     }
 
 
@@ -618,8 +638,15 @@ async function(){
 
     campo.focus();
 
+
+    // MOSTRA IMEDIATAMENTE
+
+    await carregarMensagens();
+
 };
 
+
+// APAGAR CONVERSA
 
 window.apagarConversa =
 async function(){
@@ -634,6 +661,7 @@ async function(){
     if(!confirmar){
 
         return;
+
     }
 
 
@@ -656,10 +684,8 @@ async function(){
         );
 
         return;
+
     }
-
-
-    alert("Conversa apagada! 🗑️");
 
 
     window.location.href =
@@ -668,8 +694,26 @@ async function(){
 };
 
 
+// VOLTAR
+
+window.voltar =
+function(){
+
+    // IMPORTANTE:
+    // NÃO apagar destinatario_id
+
+    window.location.href =
+        "chat.html";
+
+};
+
+
+// ENTER
+
 document
-.getElementById("campoMensagem")
+.getElementById(
+    "campoMensagem"
+)
 .addEventListener(
     "keydown",
     function(event){
@@ -686,16 +730,15 @@ document
 );
 
 
-window.voltar = function(){
-
-    window.location.href =
-        "chat.html";
-
-};
-
+// REALTIME
 
 supabase
-.channel("chat-mensagens")
+.channel(
+    "chat-" +
+    usuarioId +
+    "-" +
+    destinatarioId
+)
 .on(
     "postgres_changes",
     {
@@ -709,7 +752,7 @@ supabase
             payload.new;
 
 
-        const participaDaConversa =
+        const pertence =
             (
                 String(msg.remetente_id) ===
                 String(usuarioId)
@@ -727,7 +770,7 @@ supabase
             );
 
 
-        if(participaDaConversa){
+        if(pertence){
 
             carregarMensagens();
 
