@@ -139,46 +139,165 @@ Chat App
 
 </div>
 
+
 <script type="module">
 
 import { createClient }
 from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+
 const SUPABASE_URL =
 "https://fviycyrnixbodpsilxuo.supabase.co";
+
 
 const SUPABASE_KEY =
 "sb_publishable_MNkJhCDo4ToSb98V2rBPNA_Ubphvhw1";
 
+
 const supabase =
-createClient(SUPABASE_URL, SUPABASE_KEY);
+createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
 window.entrar = async function(){
 
     const nome =
-        document.getElementById("nome").value.trim();
+        document
+        .getElementById("nome")
+        .value
+        .trim();
+
 
     const whatsapp =
-        document.getElementById("whatsapp").value.trim();
+        document
+        .getElementById("whatsapp")
+        .value
+        .trim();
 
 
     if(!nome){
 
-        alert("Digite seu nome.");
+        alert(
+            "Digite seu nome."
+        );
 
         return;
     }
 
+
+    /*
+     * PRIMEIRO:
+     * tentar recuperar o usuário
+     * que já está salvo neste aparelho
+     */
+
+    const usuarioSalvo =
+        localStorage.getItem(
+            "chat_usuario_id"
+        );
+
+
+    if(usuarioSalvo){
+
+        const { data, error } =
+            await supabase
+            .from("usuarios")
+            .select("id,nome,whatsapp")
+            .eq(
+                "id",
+                usuarioSalvo
+            )
+            .maybeSingle();
+
+
+        if(!error && data){
+
+            localStorage.setItem(
+                "chat_usuario_id",
+                data.id
+            );
+
+            localStorage.setItem(
+                "chat_nome",
+                data.nome
+            );
+
+
+            window.location.href =
+                "chat.html";
+
+            return;
+        }
+
+    }
+
+
+    /*
+     * SEGUNDO:
+     * se informou WhatsApp,
+     * procurar usuário existente
+     */
+
+    if(whatsapp){
+
+        const { data, error } =
+            await supabase
+            .from("usuarios")
+            .select("id,nome,whatsapp")
+            .eq(
+                "whatsapp",
+                whatsapp
+            )
+            .maybeSingle();
+
+
+        if(error){
+
+            console.error(error);
+
+        }
+
+
+        if(data){
+
+            localStorage.setItem(
+                "chat_usuario_id",
+                data.id
+            );
+
+            localStorage.setItem(
+                "chat_nome",
+                data.nome
+            );
+
+
+            window.location.href =
+                "chat.html";
+
+            return;
+        }
+
+    }
+
+
+    /*
+     * TERCEIRO:
+     * criar novo usuário somente
+     * quando realmente não existir
+     */
 
     const { data, error } =
         await supabase
         .from("usuarios")
         .insert({
 
-            nome: nome,
+            nome:
+                nome,
 
-            whatsapp: whatsapp || null
+            whatsapp:
+                whatsapp || null
 
         })
         .select()
@@ -210,10 +329,15 @@ window.entrar = async function(){
 
 
     alert(
-        "Cadastro realizado! 👋\n\n" +
-        "Bem-vindo, " + data.nome + "!"
+        "Bem-vindo, " +
+        data.nome +
+        "! 👋"
     );
-window.location.href = "chat.html";
+
+
+    window.location.href =
+        "chat.html";
+
 };
 
 </script>
