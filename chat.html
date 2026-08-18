@@ -278,13 +278,19 @@ createClient(
 const usuarioId =
 localStorage.getItem("chat_usuario_id");
 
+
 const usuarioNome =
 localStorage.getItem("chat_nome");
 
 
 if(!usuarioId){
 
-    window.location.href="index.html";
+    window.location.href =
+        "index.html";
+
+    throw new Error(
+        "Usuário não identificado."
+    );
 
 }
 
@@ -295,7 +301,9 @@ document.getElementById(
 "Olá, " + usuarioNome + " 💕";
 
 
-// CARREGAR USUÁRIOS
+// ================================
+// CARREGAR CONTATOS
+// ================================
 
 async function carregarUsuarios(){
 
@@ -309,8 +317,16 @@ async function carregarUsuarios(){
         await supabase
         .from("usuarios")
         .select("id,nome,whatsapp")
-        .neq("id",usuarioId)
-        .order("nome");
+        .neq(
+            "id",
+            usuarioId
+        )
+        .order(
+            "nome",
+            {
+                ascending:true
+            }
+        );
 
 
     if(error){
@@ -346,18 +362,30 @@ async function carregarUsuarios(){
     }
 
 
-    // Buscar mensagens para mostrar última mensagem
+    // Buscar mensagens do usuário atual
 
-    const { data: mensagens } =
+    const { data: mensagens, error: erroMensagens } =
         await supabase
         .from("mensagens")
         .select("*")
         .or(
             `remetente_id.eq.${usuarioId},destinatario_id.eq.${usuarioId}`
         )
-        .order("created_at",{
-            ascending:false
-        });
+        .order(
+            "created_at",
+            {
+                ascending:false
+            }
+        );
+
+
+    if(erroMensagens){
+
+        console.error(
+            erroMensagens
+        );
+
+    }
 
 
     lista.innerHTML = "";
@@ -366,7 +394,8 @@ async function carregarUsuarios(){
     usuarios.forEach(usuario => {
 
         const mensagensDaPessoa =
-            (mensagens || []).filter(msg =>
+            (mensagens || []).filter(
+                msg =>
 
                 (
                     String(msg.remetente_id) ===
@@ -379,7 +408,6 @@ async function carregarUsuarios(){
                     String(msg.destinatario_id) ===
                     String(usuario.id)
                 )
-
             );
 
 
@@ -389,21 +417,7 @@ async function carregarUsuarios(){
             : null;
 
 
-        const div =
-            document.createElement("div");
-
-
-        div.className =
-            "conversa";
-
-
-        const inicial =
-            usuario.nome
-            .charAt(0)
-            .toUpperCase();
-
-
-        let ultimaTexto =
+        let textoUltima =
             "Toque para iniciar uma conversa 💕";
 
 
@@ -413,7 +427,7 @@ async function carregarUsuarios(){
 
         if(ultimaMensagem){
 
-            ultimaTexto =
+            textoUltima =
                 ultimaMensagem.mensagem;
 
 
@@ -436,9 +450,12 @@ async function carregarUsuarios(){
 
 
         const naoLidas =
-            mensagensDaPessoa.filter(msg =>
+            mensagensDaPessoa.filter(
+                msg =>
 
-                String(msg.destinatario_id) ===
+                String(
+                    msg.destinatario_id
+                ) ===
                 String(usuarioId)
 
                 &&
@@ -446,6 +463,22 @@ async function carregarUsuarios(){
                 msg.lida === false
 
             ).length;
+
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.className =
+            "conversa";
+
+
+        const inicial =
+            usuario.nome
+            .charAt(0)
+            .toUpperCase();
 
 
         div.innerHTML = `
@@ -463,7 +496,7 @@ async function carregarUsuarios(){
                     </div>
 
                     <div class="ultima">
-                        ${ultimaTexto}
+                        ${textoUltima}
                     </div>
 
                 </div>
@@ -474,38 +507,46 @@ async function carregarUsuarios(){
 
                 ${
                     horario
-                    ? `<div class="hora">
+                    ?
+                    `<div class="hora">
                         ${horario}
-                       </div>`
-                    : ""
+                    </div>`
+                    :
+                    ""
                 }
 
                 ${
                     naoLidas > 0
-                    ? `<div class="nao-lidas">
+                    ?
+                    `<div class="nao-lidas">
                         ${naoLidas}
-                       </div>`
-                    : ""
+                    </div>`
+                    :
+                    ""
                 }
 
             </div>
 
             ${
                 mensagensDaPessoa.length > 0
-                ? `
+                ?
+                `
                 <button
                     class="apagar"
                     title="Apagar conversa">
                     🗑️
                 </button>
                 `
-                : ""
+                :
+                ""
             }
 
         `;
 
 
+        // ================================
         // ABRIR CONVERSA
+        // ================================
 
         div.querySelector(
             ".area-conversa"
@@ -513,8 +554,9 @@ async function carregarUsuarios(){
 
             localStorage.setItem(
                 "chat_destinatario_id",
-                usuario.id
+                String(usuario.id)
             );
+
 
             window.location.href =
                 "conversa.html";
@@ -522,10 +564,14 @@ async function carregarUsuarios(){
         };
 
 
+        // ================================
         // APAGAR CONVERSA
+        // ================================
 
         const botaoApagar =
-            div.querySelector(".apagar");
+            div.querySelector(
+                ".apagar"
+            );
 
 
         if(botaoApagar){
@@ -582,28 +628,35 @@ async function carregarUsuarios(){
         }
 
 
-        lista.appendChild(div);
+        lista.appendChild(
+            div
+        );
 
     });
 
 }
 
 
+// ================================
 // SAIR
+// ================================
 
 window.sair = function(){
 
-    localStorage.removeItem(
-        "chat_usuario_id"
-    );
-
-    localStorage.removeItem(
-        "chat_nome"
-    );
+    /*
+     * NÃO apagar:
+     *
+     * chat_usuario_id
+     * chat_nome
+     *
+     * Assim o mesmo aparelho
+     * continua usando o mesmo usuário.
+     */
 
     localStorage.removeItem(
         "chat_destinatario_id"
     );
+
 
     window.location.href =
         "index.html";
@@ -611,10 +664,14 @@ window.sair = function(){
 };
 
 
-// ATUALIZAÇÃO EM TEMPO REAL
+// ================================
+// NOVO USUÁRIO
+// ================================
 
 supabase
-.channel("lista-contatos")
+.channel(
+    "lista-contatos"
+)
 .on(
     "postgres_changes",
     {
@@ -631,8 +688,14 @@ supabase
 .subscribe();
 
 
+// ================================
+// NOVA MENSAGEM
+// ================================
+
 supabase
-.channel("lista-mensagens")
+.channel(
+    "lista-mensagens"
+)
 .on(
     "postgres_changes",
     {
